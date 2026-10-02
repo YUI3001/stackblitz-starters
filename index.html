@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tarefas Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full transition-colors duration-200 flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-list-check text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">TaskMaster</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Gerencie suas metas de forma simples e eficiente</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all" title="Alternar Tema">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+                
+                <!-- Nova Tarefa Mobile/Desktop -->
+                <button onclick="openTaskModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md hover:shadow-blue-500/20 active:scale-95 text-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Nova Tarefa</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+        
+        <!-- Dashboard Metrics -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total de Tarefas</p>
+                    <h3 id="statTotal" class="text-2xl font-bold text-slate-800 dark:text-white">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <i class="fa-solid fa-clock text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Pendentes</p>
+                    <h3 id="statPending" class="text-2xl font-bold text-slate-800 dark:text-white">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm flex items-center gap-4">
+                <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Concluídas</p>
+                    <h3 id="statCompleted" class="text-2xl font-bold text-slate-800 dark:text-white">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Progresso</span>
+                    <span id="statPercentText" class="text-xs font-bold text-blue-600 dark:text-blue-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                    <div id="statProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls & Filters -->
+        <section class="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row gap-4 justify-between">
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por título ou descrição..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white transition-all">
+                </div>
+
+                <!-- Select Filters -->
+                <div class="flex flex-wrap sm:flex-nowrap gap-3">
+                    <!-- Status Filter -->
+                    <select id="filterStatus" class="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white cursor-pointer">
+                        <option value="all">Todos os Status</option>
+                        <option value="pending">Pendentes</option>
+                        <option value="completed">Concluídas</option>
+                    </select>
+
+                    <!-- Priority Filter -->
+                    <select id="filterPriority" class="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white cursor-pointer">
+                        <option value="all">Todas as Prioridades</option>
+                        <option value="Alta">Prioridade Alta</option>
+                        <option value="Média">Prioridade Média</option>
+                        <option value="Baixa">Prioridade Baixa</option>
+                    </select>
+
+                    <!-- Sort Filter -->
+                    <select id="sortBy" class="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white cursor-pointer">
+                        <option value="date-asc">Data (Mais Próxima)</option>
+                        <option value="date-desc">Data (Mais Distante)</option>
+                        <option value="priority-high">Prioridade (Maior-Menor)</option>
+                        <option value="priority-low">Prioridade (Menor-Maior)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Container -->
+        <section>
+            <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Direct JS rendering here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16 px-4 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-1">Nenhuma tarefa encontrada</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm max-w-sm mx-auto mb-6">Você não possui tarefas que correspondam aos filtros selecionados ou ainda não adicionou nenhuma.</p>
+                <button onclick="openTaskModal()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium text-sm transition-all shadow-sm">
+                    <i class="fa-solid fa-plus"></i> Criar Nova Tarefa
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Criar / Editar Tarefa -->
+    <div id="taskModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all my-8">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                <h2 id="modalTitle" class="text-lg font-semibold text-slate-800 dark:text-white">Nova Tarefa</h2>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="taskForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="taskId">
+
+                <!-- Título -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Título *</label>
+                    <input type="text" id="taskTitle" required placeholder="Ex: Preparar apresentação de vendas"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white">
+                </div>
+
+                <!-- Descrição -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Descrição (Opcional)</label>
+                    <textarea id="taskDescription" rows="3" placeholder="Adicione detalhes relevantes sobre a tarefa..."
+                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white custom-scrollbar resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Data de Vencimento -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Data de Vencimento *</label>
+                        <input type="date" id="taskDueDate" required
+                            class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white">
+                    </div>
+
+                    <!-- Categoria -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Categoria</label>
+                        <select id="taskCategory" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white">
+                            <option value="Trabalho">Trabalho</option>
+                            <option value="Pessoal">Pessoal</option>
+                            <option value="Estudos">Estudos</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Financeiro">Financeiro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Prioridade -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Prioridade</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="priority" value="Baixa" class="peer hidden">
+                            <div class="text-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 peer-checked:bg-emerald-500/10 peer-checked:border-emerald-500 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400 transition-all">
+                                Baixa
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="priority" value="Média" checked class="peer hidden">
+                            <div class="text-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 peer-checked:bg-amber-500/10 peer-checked:border-amber-500 peer-checked:text-amber-600 dark:peer-checked:text-amber-400 transition-all">
+                                Média
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="priority" value="Alta" class="peer hidden">
+                            <div class="text-center py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 peer-checked:bg-rose-500/10 peer-checked:border-rose-500 peer-checked:text-rose-600 dark:peer-checked:text-rose-400 transition-all">
+                                Alta
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-slate-700">
+                    <button type="button" onclick="closeTaskModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm transition-all">
+                        Salvar Tarefa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-800">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Notificação</span>
+    </div>
+
+    <script>
+        // Data Application State
+        let tasks = [];
+        const STORAGE_KEY = 'taskmaster_tasks_v1';
+        const THEME_KEY = 'taskmaster_theme';
+
+        // DOM Elements
+        const taskListEl = document.getElementById('taskList');
+        const emptyStateEl = document.getElementById('emptyState');
+        const taskModalEl = document.getElementById('taskModal');
+        const taskForm = document.getElementById('taskForm');
+        const modalTitleEl = document.getElementById('modalTitle');
+        const searchInput = document.getElementById('searchInput');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterPriority = document.getElementById('filterPriority');
+        const sortBy = document.getElementById('sortBy');
+
+        // Initial Load
+        window.onload = function() {
+            initTheme();
+            loadTasks();
+            setupEventListeners();
+            renderTasks();
+            updateDashboard();
+        };
+
+        // Theme Initialization and Toggle
+        function initTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        });
+
+        // Load tasks from LocalStorage
+        function loadTasks() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                tasks = stored ? JSON.parse(stored) : getInitialMockTasks();
+            } catch (e) {
+                console.error("Erro ao carregar dados do localStorage:", e);
+                tasks = [];
+            }
+        }
+
+        // Save tasks to LocalStorage
+        function saveTasks() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            } catch (e) {
+                console.error("Erro ao salvar no localStorage:", e);
+            }
+        }
+
+        // Mock tasks fallback
+        function getInitialMockTasks() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            return [
+                {
+                    id: '1',
+                    title: 'Apresentação do Projeto Final',
+                    description: 'Finalizar os slides e praticar a apresentação para a equipe.',
+                    dueDate: tomorrow.toISOString().split('T')[0],
+                    priority: 'Alta',
+                    category: 'Trabalho',
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: '2',
+                    title: 'Comprar suprimentos de escritório',
+                    description: 'Canetas, bloco de notas e suporte de monitor.',
+                    dueDate: today.toISOString().split('T')[0],
+                    priority: 'Baixa',
+                    category: 'Pessoal',
+                    completed: true,
+                    createdAt: new Date().toISOString()
+                }
+            ];
+        }
+
+        // Setup filter and search listeners
+        function setupEventListeners() {
+            searchInput.addEventListener('input', renderTasks);
+            filterStatus.addEventListener('change', renderTasks);
+            filterPriority.addEventListener('change', renderTasks);
+            sortBy.addEventListener('change', renderTasks);
+        }
+
+        // Modal Controls
+        function openTaskModal(taskId = null) {
+            taskForm.reset();
+            document.getElementById('taskId').value = '';
+            
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    modalTitleEl.textContent = 'Editar Tarefa';
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDescription').value = task.description || '';
+                    document.getElementById('taskDueDate').value = task.dueDate;
+                    document.getElementById('taskCategory').value = task.category;
+                    
+                    const priorityRadio = document.querySelector(`input[name="priority"][value="${task.priority}"]`);
+                    if (priorityRadio) priorityRadio.checked = true;
+                }
+            } else {
+                modalTitleEl.textContent = 'Nova Tarefa';
+                // Set default date to today
+                document.getElementById('taskDueDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            taskModalEl.classList.remove('hidden');
+            document.getElementById('taskTitle').focus();
+        }
+
+        function closeTaskModal() {
+            taskModalEl.classList.add('hidden');
+        }
+
+        // Form Submit Handler
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('taskId').value;
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const dueDate = document.getElementById('taskDueDate').value;
+            const category = document.getElementById('taskCategory').value;
+            const priority = document.querySelector('input[name="priority"]:checked').value;
+
+            if (!title || !dueDate) return;
+
+            if (id) {
+                // Update Existing Task
+                const index = tasks.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    tasks[index] = {
+                        ...tasks[index],
+                        title,
+                        description,
+                        dueDate,
+                        category,
+                        priority
+                    };
+                    showToast('Tarefa atualizada com sucesso!');
+                }
+            } else {
+                // Create New Task
+                const newTask = {
+                    id: Date.now().toString(),
+                    title,
+                    description,
+                    dueDate,
+                    category,
+                    priority,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                tasks.push(newTask);
+                showToast('Nova tarefa adicionada!');
+            }
+
+            saveTasks();
+            renderTasks();
+            updateDashboard();
+            closeTaskModal();
+        }
+
+        // Toggle Task Complete Status
+        function toggleTaskStatus(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+                updateDashboard();
+                showToast(task.completed ? 'Tarefa concluída!' : 'Tarefa marcada como pendente.');
+            }
+        }
+
+        // Delete Task
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+            updateDashboard();
+            showToast('Tarefa excluída!');
+        }
+
+        // Helper: Category Badge Styling
+        function getCategoryBadge(category) {
+            const colors = {
+                'Trabalho': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                'Pessoal': 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+                'Estudos': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
+                'Saúde': 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+                'Financeiro': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+            };
+            return colors[category] || 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+        }
+
+        // Helper: Priority Badge Styling
+        function getPriorityBadge(priority) {
+            switch(priority) {
+                case 'Alta':
+                    return 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-800/50';
+                case 'Média':
+                    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800/50';
+                case 'Baixa':
+                    return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50';
+                default:
+                    return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+            }
+        }
+
+        // Date Format helper (YYYY-MM-DD -> DD/MM/YYYY)
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        // Filter and Sort Processing
+        function getFilteredTasks() {
+            const query = searchInput.value.toLowerCase().trim();
+            const status = filterStatus.value;
+            const priority = filterPriority.value;
+            const sortOption = sortBy.value;
+
+            return tasks.filter(task => {
+                // Search filter
+                const matchesSearch = task.title.toLowerCase().includes(query) || 
+                                     (task.description && task.description.toLowerCase().includes(query));
+                
+                // Status filter
+                const matchesStatus = status === 'all' ? true : 
+                                     status === 'completed' ? task.completed : !task.completed;
+
+                // Priority filter
+                const matchesPriority = priority === 'all' ? true : task.priority === priority;
+
+                return matchesSearch && matchesStatus && matchesPriority;
+            }).sort((a, b) => {
+                // Priority Mapping value
+                const priorityWeight = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
+
+                if (sortOption === 'date-asc') {
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                } else if (sortOption === 'date-desc') {
+                    return new Date(b.dueDate) - new Date(a.dueDate);
+                } else if (sortOption === 'priority-high') {
+                    return priorityWeight[b.priority] - priorityWeight[a.priority];
+                } else if (sortOption === 'priority-low') {
+                    return priorityWeight[a.priority] - priorityWeight[b.priority];
+                }
+                return 0;
+            });
+        }
+
+        // Render Tasks to Screen
+        function renderTasks() {
+            const filtered = getFilteredTasks();
+
+            if (filtered.length === 0) {
+                taskListEl.innerHTML = '';
+                emptyStateEl.classList.remove('hidden');
+                return;
+            }
+
+            emptyStateEl.classList.add('hidden');
+            taskListEl.innerHTML = filtered.map(task => {
+                const isOverdue = !task.completed && new Date(task.dueDate) < new Date(new Date().setHours(0,0,0,0));
+
+                return `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group ${task.completed ? 'opacity-75' : ''}">
+                        <div>
+                            <!-- Header Info -->
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-xs px-2.5 py-1 rounded-lg font-medium ${getCategoryBadge(task.category)}">
+                                        ${task.category}
+                                    </span>
+                                    <span class="text-xs px-2.5 py-1 rounded-lg font-medium border ${getPriorityBadge(task.priority)}">
+                                        ${task.priority}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="openTaskModal('${task.id}')" title="Editar" class="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteTask('${task.id}')" title="Excluir" class="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Title & Checkbox -->
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTaskStatus('${task.id}')" class="mt-0.5 text-xl transition-all focus:outline-none">
+                                    ${task.completed 
+                                        ? '<i class="fa-solid fa-circle-check text-emerald-500"></i>' 
+                                        : '<i class="fa-regular fa-circle text-slate-300 dark:text-slate-600 hover:text-blue-500"></i>'}
+                                </button>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-slate-800 dark:text-white leading-snug ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''}">
+                                        ${escapeHtml(task.title)}
+                                    </h3>
+                                    ${task.description ? `
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed ${task.completed ? 'line-through opacity-75' : ''}">
+                                            ${escapeHtml(task.description)}
+                                        </p>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Due Date -->
+                        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
+                            <span class="flex items-center gap-1.5 ${isOverdue ? 'text-rose-500 font-medium' : ''}">
+                                <i class="fa-regular fa-calendar"></i>
+                                ${formatDate(task.dueDate)} ${isOverdue ? '(Vencida)' : ''}
+                            </span>
+                            <span class="text-slate-400 dark:text-slate-500">
+                                ${task.completed ? 'Concluída' : 'Pendente'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update Dashboard Statistics
+        function updateDashboard() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const pending = total - completed;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statCompleted').textContent = completed;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statPercentText').textContent = `${percent}%`;
+            document.getElementById('statProgressBar').style.width = `${percent}%`;
+        }
+
+        // Toast Notification Function
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Helper: Prevent HTML Injection
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
